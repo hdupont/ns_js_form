@@ -1,7 +1,10 @@
 /**
  * On ajoute au DOM un formulaire permettant à l'utilisateur de saisir des
- * informations. Si elles sont valide les informations du formulaire sont
- * ensuite affiché à coté du formulaire.
+ * informations. Si elles sont valides les informations du formulaire sont
+ * affichées sous forme clé/valeur.
+ * 
+ * NOTE L'appli gère automatiquement l'ajout de nouveaux champs. Il suffit
+ * des les ajouter au tableau de champs fields.
  */
 (function(Form, Field) {
 	
@@ -11,10 +14,16 @@
 	 * formulaire.
 	 */
 	function addFormToDom(fields) {
-		var form = new Form(fields, function() {
-			var keyValueObject = form.toKeyValueObject(); 
-			console.log(keyValueObject);
-			displayKeyValueObject(keyValueObject);
+		var form = new Form(fields, function(validationOk) {
+			// Dans tous les cas on vide la zone d'affichage.
+			clearKeyValueObjectDisplay();
+			
+			// Si tout s'est bien passé on affiche les clés/valeurs.
+			if (validationOk) {
+				var keyValueObject = form.toKeyValueObject(); 
+				console.log(keyValueObject);
+				displayKeyValueObject(keyValueObject);	
+			}
 		});
 		var formNode = form.buildDomNode();
 		
@@ -59,6 +68,9 @@
 		display.innerHTML = "";
 	}
 	
+	/**
+	 * Les champs gérés par le formulaire. 
+	 */
 	var fields = [
           new Field("nom"),
           new Field("prenom"),

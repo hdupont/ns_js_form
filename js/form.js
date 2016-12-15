@@ -10,14 +10,13 @@ nsform.Form = (function() {
 	/**
 	 * Construit une Form
 	 * @property {array} _fields La liste des champs à saisir.
-	 * @property {function} _onValidationOk Le traitement à exécuter lorsque la
-	 * validation a été effectuée.
-	 * @property {HTMLElement} _errorCell La zone d'affichage des erreurs.
+	 * @property {function} _onValidation Le traitement à exécuter lorsque la
+	 * validation a été effectuée. Ce traitement prend en argument un booléen
+	 * qui indique si la validation s'est bien passée.
 	 */
-	function Form(fields, onValidationOk) {
+	function Form(fields, onValidation) {
 		this._fields = fields;
-		this._errorCell = null;
-		this._onValidationOk = onValidationOk;
+		this._onValidation = onValidation;
 	}
 	
 	/**
@@ -25,18 +24,26 @@ nsform.Form = (function() {
 	 * @returns {HTMLElement} Le noeud DOM du formulaire.
 	 */
 	Form.prototype.buildDomNode = function() {
+		
+		// Construit le bouton.
+		function buildButton() {
+			var button = document.createElement("button");
+			button.innerHTML = "Envoyer";
+			button.style.float = "right";
+			button.style.backgroundColor = "#4CAF50"; /* Green */
+			button.style.border = "none";
+			button.style.color = "white";
+			button.style.padding = "5px 10px";
+			button.style.textAlign = "center";
+			button.style.textDecoration = "none";
+			button.style.display = "inline-block";
+			button.style.fontSize = "16px";
+			
+			return button;
+		}
+		
 		// Le formulaire est affiché dans un tableau.
 		var formNode = document.createElement("table");
-		
-		// On ajoute la zone d'affichage des erreurs.
-		var errorRow = document.createElement("tr");
-		this._errorCell = document.createElement("td");
-		this._errorCell.setAttribute("colspan", 2);
-		this._errorCell.style.backgroundColor = "red";
-		this._errorCell.style.display = "none";
-		errorRow.appendChild(this._errorCell);
-		errorRow.setAttribute("kind", "errorrow");
-		formNode.appendChild(errorRow);
 		
 		// On ajoute les lignes des champs.
 		this._fields.forEach(function(field) {
@@ -45,10 +52,12 @@ nsform.Form = (function() {
 		});
 		
 		// On ajoute le bouton.
+		var buttonNode =  buildButton();
+		var buttonCell = document.createElement("td");
+		buttonCell.setAttribute("colspan", 2);
+		buttonCell.appendChild(buttonNode);
 		var buttonRow = document.createElement("tr");
-		var buttonNode = document.createElement("button");
-		buttonNode.innerHTML = "Envoyer";
-		buttonRow.appendChild(buttonNode);
+		buttonRow.appendChild(buttonCell);
 		formNode.appendChild(buttonRow);
 		
 		// On ajoute son écouteur au bouton.
@@ -70,33 +79,6 @@ nsform.Form = (function() {
 		
 		return fieldsData;
 	};
-	
-	/**
-	 * Affiche les messages d'erreurs des champs en erreurs.
-	 * @param {object} self Le formulaire.
-	 * @param {array} fieldsOnError La liste des champs en erreurs. 
-	 */
-	function setAndShowErrorMessage(self, fieldsOnError) {
-		var errorsContainer = document.createElement("div");
-		fieldsOnError.forEach(function(field) {
-			var errorNode = document.createElement("div");
-			errorNode.innerHTML = "Le champ \"" + field.getLabel() + "\" est en erreur : " + field.getErrorMessage();
-			errorsContainer.appendChild(errorNode);
-		});
-		
-		self._errorCell.appendChild(errorsContainer);
-		// On rend la zone d'affichage des erreurs visible.
-		self._errorCell.style.display = "";
-	}
-
-	/**
-	 * Vide la zone d'affichage des erreurs.
-	 * @param {object} self Le formulaire.
-	 */
-	function resetAndHideErrorMessage(self) {
-		self._errorCell.innerHTML = "";
-		self._errorCell.style.display = "none";
-	}
 
 	/**
 	 * Vide le formulaire.
@@ -105,7 +87,7 @@ nsform.Form = (function() {
 	 */
 	function resetForm(self) {
 		self._fields.forEach(function(field) {
-			field.emptyFieldInput();
+			field.reset();
 		});
 	}
 	
@@ -114,8 +96,6 @@ nsform.Form = (function() {
 	 */
 	function addButtonListener(button, self) {
 		button.addEventListener("click", function() {
-			resetAndHideErrorMessage(self);
-			
 			var fields = self._fields;
 			var checkOk = true;
 			var fieldsOnError = [];
@@ -123,18 +103,15 @@ nsform.Form = (function() {
 				var currentField = fields[i];
 				checkOk &= currentField.check();
 				if (! checkOk) {
-					fieldsOnError.push(currentField);
+					console.log("check KO - " + currentField.getLabel() + " : " + currentField.getErrorMessage());
 				}
-			} 
-			if (fieldsOnError.length > 0) { 
-				setAndShowErrorMessage(self, fieldsOnError);
 			}
-			else {
+			self._onValidation(checkOk);
+			
+			if (checkOk) {
 				console.log("Form check ok :)");
-				self._onValidationOk();
 				resetForm(self);
 			}
-			
 		});
 	}
 	

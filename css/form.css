@@ -1,3 +1,8 @@
-#form {
-	float:left;
+body {
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+table {
+	border : 1px solid black;
+	margin-bottom: 10px;
 }
