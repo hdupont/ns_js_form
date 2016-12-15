@@ -13,21 +13,21 @@
 	 * @param {array} fields L'ensemble des formulaires que contiendra le
 	 * formulaire.
 	 */
-	function addFormToDom(fields) {
+	function addFormToDom(fields, formId, displayId) {
 		var form = new Form(fields, function(validationOk) {
 			// Dans tous les cas on vide la zone d'affichage.
-			clearKeyValueObjectDisplay();
+			clearKeyValueObjectDisplay(displayId);
 			
 			// Si tout s'est bien passé on affiche les clés/valeurs.
 			if (validationOk) {
 				var keyValueObject = form.toKeyValueObject(); 
 				console.log(keyValueObject);
-				displayKeyValueObject(keyValueObject);	
+				displayKeyValueObject(keyValueObject, displayId);	
 			}
 		});
 		var formNode = form.buildDomNode();
 		
-		var formContainer = document.getElementById("form");
+		var formContainer = document.getElementById(formId);
 		formContainer.appendChild(formNode);	
 	}
 	
@@ -36,7 +36,7 @@
 	 * été validé.
 	 * @param {object} keyValueObject L'objet contenant les couples clé/valeur.
 	 */
-	function displayKeyValueObject(keyValueObject) {
+	function displayKeyValueObject(keyValueObject, displayId) {
 		
 		var table = document.createElement("table");
 		
@@ -54,7 +54,7 @@
 			table.appendChild(row)
 		}
 		
-		var display = document.getElementById("display");
+		var display = document.getElementById(displayId);
 		display.innerHTML = "";
 		display.appendChild(table);
 	}
@@ -63,20 +63,27 @@
 	 * Supprime l'affichage des couples clé/valeur affichés  par
 	 * displayKeyValueObject
 	 */
-	function clearKeyValueObjectDisplay() {
-		var display = document.getElementById("display");
+	function clearKeyValueObjectDisplay(displayId) {
+		var display = document.getElementById(displayId);
 		display.innerHTML = "";
 	}
 	
 	/**
 	 * Les champs gérés par le formulaire. 
 	 */
-	var fields = [
+	var fieldsFr = [
           new Field("nom"),
           new Field("prenom"),
           new Field("email", "email")
 	];
 	
-	addFormToDom(fields);
+	var fieldsEn = [
+        new Field("last name"),
+        new Field("first name"),
+        new Field("email", "email")
+	];
+
+	addFormToDom(fieldsFr, "formfr", "displayfr");
+	addFormToDom(fieldsEn, "formen", "displayen");
 	
 })(nsform.Form, nsform.Field);
